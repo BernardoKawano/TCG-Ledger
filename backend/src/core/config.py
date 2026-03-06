@@ -1,4 +1,5 @@
 """Application configuration."""
+from typing import List
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -12,6 +13,9 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "postgresql://postgres:postgres@localhost:5432/tcg_ledger"
+
+    # CORS (comma-separated origins; "*" when debug)
+    cors_origins: str = ""
 
     # JWT
     secret_key: str = "change-me-in-production-use-openssl-rand-hex-32"
@@ -32,9 +36,28 @@ class Settings(BaseSettings):
     aws_access_key_id: str | None = None
     aws_secret_access_key: str | None = None
 
+    # Upload
+    max_upload_bytes: int = 10 * 1024 * 1024  # 10MB
+
     # Vision API (Google or AWS)
     google_application_credentials: str | None = None
     use_aws_rekognition: bool = False
+
+    @property
+    def cors_allow_origins(self) -> List[str]:
+        """CORS allowed origins. ['*'] when debug, else from cors_origins env."""
+        if self.debug:
+            return ["*"]
+        if self.cors_origins:
+            return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        return ["http://localhost:8081", "http://localhost:19006"]  # Expo defaults
+
+    def validate_secret_key(self) -> None:
+        """Raise if SECRET_KEY is default in production."""
+        if not self.debug and "change-me" in self.secret_key.lower():
+            raise ValueError(
+                "SECRET_KEY must be changed in production. Use: openssl rand -hex 32"
+            )
 
     class Config:
         env_file = ".env"

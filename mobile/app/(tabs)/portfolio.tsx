@@ -6,8 +6,12 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Pressable,
 } from "react-native";
+import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../src/api/client";
+import { colors, radius, spacing, typography } from "../../src/theme/tokens";
 
 interface PortfolioData {
   total_value: number;
@@ -18,16 +22,20 @@ interface PortfolioData {
 }
 
 export default function Portfolio() {
+  const insets = useSafeAreaInsets();
   const [data, setData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchPortfolio = async () => {
+    setFetchError(null);
     try {
       const { data: res } = await api.get("/collection/portfolio");
       setData(res);
     } catch {
       setData(null);
+      setFetchError("Falha ao carregar. Verifique a conexão e tente novamente.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -41,7 +49,7 @@ export default function Portfolio() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Carregando portfólio...</Text>
       </View>
     );
@@ -49,7 +57,11 @@ export default function Portfolio() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={styles.scroll}
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: insets.top + spacing.xl, paddingBottom: spacing.xxl },
+      ]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={() => {
           setRefreshing(true);
@@ -63,7 +75,11 @@ export default function Portfolio() {
           <View style={styles.totalCard}>
             <Text style={styles.totalLabel}>Valor total</Text>
             <Text style={styles.totalValue}>
-              {data.currency} {data.total_value.toFixed(2)}
+              {data.currency}{" "}
+              {data.total_value.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </Text>
           </View>
           <View style={styles.changes}>
@@ -99,112 +115,155 @@ export default function Portfolio() {
                 <View key={t.tcg_slug} style={styles.tcgRow}>
                   <Text style={styles.tcgName}>{t.tcg_slug}</Text>
                   <Text style={styles.tcgValue}>
-                    {data.currency} {t.value.toFixed(2)} ({t.count} itens)
+                    {data.currency}{" "}
+                    {t.value.toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    ({t.count} itens)
                   </Text>
                 </View>
               ))}
             </View>
           )}
         </>
+      ) : fetchError ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.empty}>{fetchError}</Text>
+          <Pressable
+            style={({ pressed }) => [styles.emptyButton, pressed && styles.emptyButtonPressed]}
+            onPress={fetchPortfolio}
+          >
+            <Text style={styles.emptyButtonText}>Tentar novamente</Text>
+          </Pressable>
+        </View>
       ) : (
-        <Text style={styles.empty}>Adicione cartas à coleção para ver o portfólio.</Text>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.empty}>Adicione cartas à coleção para ver o portfólio.</Text>
+          <Pressable
+            style={({ pressed }) => [styles.emptyButton, pressed && styles.emptyButtonPressed]}
+            onPress={() => router.push("/(tabs)/scan")}
+          >
+            <Text style={styles.emptyButtonText}>Escanear carta</Text>
+          </Pressable>
+        </View>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
-    backgroundColor: "#0f172a",
-    padding: 24,
-    paddingTop: 48,
+    backgroundColor: colors.background,
+  },
+  container: {
+    paddingHorizontal: spacing.xl,
   },
   center: {
     flex: 1,
-    backgroundColor: "#0f172a",
+    backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
   },
   loadingText: {
-    color: "#94a3b8",
-    marginTop: 12,
+    color: colors.textMuted,
+    marginTop: spacing.md,
+    ...typography.sm,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#f8fafc",
-    marginBottom: 24,
+    ...typography.xl,
+    ...typography.bold,
+    color: colors.text,
+    marginBottom: spacing.xl,
   },
   totalCard: {
-    backgroundColor: "#1e293b",
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
     alignItems: "center",
   },
   totalLabel: {
-    fontSize: 14,
-    color: "#94a3b8",
-    marginBottom: 4,
+    ...typography.sm,
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
   },
   totalValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#f8fafc",
+    ...typography["3xl"],
+    ...typography.bold,
+    color: colors.text,
   },
   changes: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 24,
+    gap: spacing.md,
+    marginBottom: spacing.xl,
   },
   changeBox: {
     flex: 1,
-    backgroundColor: "#1e293b",
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.lg,
     alignItems: "center",
   },
   changeLabel: {
-    fontSize: 12,
-    color: "#94a3b8",
-    marginBottom: 4,
+    ...typography.xs,
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
   },
   changeValue: {
-    fontSize: 18,
-    fontWeight: "700",
+    ...typography.lg,
+    ...typography.bold,
   },
-  positive: { color: "#22c55e" },
-  negative: { color: "#ef4444" },
+  positive: { color: colors.success },
+  negative: { color: colors.error },
   section: {
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#f8fafc",
-    marginBottom: 12,
+    ...typography.base,
+    ...typography.semibold,
+    color: colors.text,
+    marginBottom: spacing.md,
   },
   tcgRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 12,
-    backgroundColor: "#1e293b",
-    borderRadius: 8,
-    marginBottom: 8,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    marginBottom: spacing.sm,
   },
   tcgName: {
-    color: "#f8fafc",
-    fontSize: 14,
+    color: colors.text,
+    ...typography.sm,
   },
   tcgValue: {
-    color: "#94a3b8",
-    fontSize: 14,
+    color: colors.textMuted,
+    ...typography.sm,
+  },
+  emptyContainer: {
+    paddingVertical: spacing.xxxl,
+    alignItems: "center",
   },
   empty: {
-    color: "#64748b",
+    color: colors.textSubtle,
     textAlign: "center",
-    marginTop: 48,
-    fontSize: 16,
+    ...typography.base,
+    marginBottom: spacing.lg,
+  },
+  emptyButton: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+  },
+  emptyButtonText: {
+    color: colors.primaryForeground,
+    ...typography.base,
+    ...typography.semibold,
+  },
+  emptyButtonPressed: {
+    opacity: 0.9,
   },
 });

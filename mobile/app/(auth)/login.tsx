@@ -3,16 +3,19 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
 } from "react-native";
 import { Link, router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../src/store/authStore";
+import { colors, radius, spacing, typography } from "../../src/theme/tokens";
 
 export default function Login() {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login, isLoading } = useAuthStore();
@@ -33,14 +36,15 @@ export default function Login() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
+      style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
     >
       <View style={styles.box}>
-        <Text style={styles.title}>TCG Ledger</Text>
-        <Text style={styles.subtitle}>Entre na sua conta</Text>
+        <Text style={styles.title}>Entre na sua conta</Text>
+        <Text style={styles.subtitle}>TCG Ledger</Text>
         <TextInput
           style={styles.input}
           placeholder="Email"
+          placeholderTextColor={colors.textMuted}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -49,21 +53,26 @@ export default function Login() {
         <TextInput
           style={styles.input}
           placeholder="Senha"
+          placeholderTextColor={colors.textMuted}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            isLoading && styles.buttonDisabled,
+            pressed && !isLoading && styles.buttonPressed,
+          ]}
           onPress={handleLogin}
           disabled={isLoading}
         >
           <Text style={styles.buttonText}>{isLoading ? "Entrando..." : "Entrar"}</Text>
-        </TouchableOpacity>
+        </Pressable>
         <Link href="/(auth)/register" asChild>
-          <TouchableOpacity style={styles.link}>
+          <Pressable style={({ pressed }) => [styles.link, pressed && styles.linkPressed]}>
             <Text style={styles.linkText}>Não tem conta? Cadastre-se</Text>
-          </TouchableOpacity>
+          </Pressable>
         </Link>
       </View>
     </KeyboardAvoidingView>
@@ -73,57 +82,63 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0f172a",
+    backgroundColor: colors.background,
     justifyContent: "center",
-    padding: 24,
+    padding: spacing.xl,
   },
   box: {
-    backgroundColor: "#1e293b",
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#f8fafc",
+    ...typography["2xl"],
+    ...typography.bold,
+    color: colors.text,
     textAlign: "center",
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#94a3b8",
+    ...typography.base,
+    color: colors.textMuted,
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   input: {
-    backgroundColor: "#334155",
-    borderRadius: 12,
-    padding: 16,
-    color: "#f8fafc",
-    marginBottom: 12,
-    fontSize: 16,
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    color: colors.text,
+    marginBottom: spacing.md,
+    ...typography.base,
   },
   button: {
-    backgroundColor: "#3b82f6",
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    padding: spacing.lg,
     alignItems: "center",
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
+  buttonPressed: {
+    opacity: 0.9,
+  },
   buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    color: colors.primaryForeground,
+    ...typography.base,
+    ...typography.semibold,
   },
   link: {
-    marginTop: 16,
+    marginTop: spacing.lg,
     alignItems: "center",
   },
   linkText: {
-    color: "#60a5fa",
-    fontSize: 14,
+    color: colors.link,
+    ...typography.sm,
+  },
+  linkPressed: {
+    opacity: 0.8,
   },
 });

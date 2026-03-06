@@ -39,8 +39,13 @@ def test_register(client):
 
 
 def test_register_duplicate_email(client, test_user):
-    resp = client.post("/api/v1/auth/register", json={"email": "test@example.com", "password": "other"})
+    resp = client.post("/api/v1/auth/register", json={"email": "test@example.com", "password": "other1234"})
     assert resp.status_code == 400
+
+
+def test_register_short_password(client):
+    resp = client.post("/api/v1/auth/register", json={"email": "a@b.com", "password": "short"})
+    assert resp.status_code == 422
 
 
 def test_login(client, test_user):

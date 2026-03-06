@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import { router } from "expo-router";
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -20,9 +21,15 @@ api.interceptors.request.use(async (config) => {
 
 api.interceptors.response.use(
   (r) => r,
-  (err) => {
+  async (err) => {
     if (err.response?.status === 401) {
-      SecureStore.deleteItemAsync("token");
+      await SecureStore.deleteItemAsync("token");
+      // Redirecionar para login para evitar tela quebrada
+      try {
+        router.replace("/(auth)/login");
+      } catch {
+        // Router pode não estar pronto; ignora
+      }
     }
     return Promise.reject(err);
   }

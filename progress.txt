@@ -1,0 +1,39 @@
+# TCG Ledger — Progresso do Build
+
+## Design Phase 1 — Implementado em 2025-03-06
+
+### Alterações realizadas
+
+- **DESIGN_SYSTEM**: Criado `docs/DESIGN_SYSTEM.md` e `mobile/src/theme/tokens.ts` com tokens de cores, espaçamento, radius e tipografia.
+
+- **Root Layout**: SafeAreaProvider, StatusBar style="light".
+
+- **Auth (Login/Register)**:
+  - Ordem título/subtítulo padronizada (ação como título, TCG Ledger como subtítulo).
+  - placeholderTextColor nos inputs.
+  - SafeAreaInsets aplicados ao container.
+  - Estilos migrados para tokens.
+
+- **Home**: ScrollView, SafeAreaInsets, tokens. Removida borda dos cards.
+
+- **Tabs**: Ícones Ionicons (home, scan, folder-open, pie-chart). Cores via tokens.
+
+- **Collection**: contentContainerStyle flexGrow na FlatList. SafeAreaInsets. Tokens.
+
+- **Scan**: SafeAreaInsets. Tokens.
+
+- **Portfolio**: SafeAreaInsets. Tokens. ScrollView com contentContainerStyle dinâmico.
+
+### Design Phase 2 — Implementado em 2025-03-06
+
+- Portfolio: tcgRow radius.sm → radius.md (unificado com changeBox)
+- Collection: contentContainerStyle paddingBottom
+- Scan: ScrollView no lugar de View; ritmo consistente
+
+### Design Phase 3 — Implementado em 2025-03-06
+
+- Empty states: Collection e Portfolio com botão CTA "Escanear carta"
+- Formatação: toLocaleString pt-BR para valores (Portfolio, Collection)
+- Collection: preço com DEFAULT_CURRENCY (USD) em vez de $ fixo
+- Pressable: substituição de TouchableOpacity em Home, Scan, Auth, empty states
+- Feedback tátil: estilos *Pressed para opacidade em interação

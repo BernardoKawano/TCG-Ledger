@@ -1,8 +1,9 @@
 """Auth API routes."""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.core.limiter import limiter
 from src.auth.service import AuthService
 from src.auth.schemas import UserCreate, UserResponse, Token
 from src.auth.dependencies import get_current_user
@@ -13,7 +14,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=UserResponse)
-def register(data: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register(request: Request, data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
     if AuthService.get_user_by_email(db, data.email):
         raise HTTPException(
@@ -25,7 +27,8 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(data: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, data: UserCreate, db: Session = Depends(get_db)):
     """Login and receive JWT."""
     user = AuthService.authenticate(db, data.email, data.password)
     if not user:

@@ -1,8 +1,17 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../src/store/authStore";
+import { colors, radius, spacing, typography } from "../../src/theme/tokens";
 
 export default function Home() {
+  const insets = useSafeAreaInsets();
   const { logout } = useAuthStore();
 
   const handleLogout = async () => {
@@ -11,70 +20,101 @@ export default function Home() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: insets.top + spacing.xl, paddingBottom: spacing.xxl },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.title}>TCG Ledger</Text>
       <Text style={styles.subtitle}>Portfolio tracker para colecionadores</Text>
-      <TouchableOpacity style={styles.card} onPress={() => router.push("/(tabs)/scan")}>
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => router.push("/(tabs)/scan")}
+      >
         <Text style={styles.cardTitle}>Escanear carta</Text>
-        <Text style={styles.cardDesc}>Use a câmera para identificar cartas</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.card} onPress={() => router.push("/(tabs)/collection")}>
+        <Text style={styles.cardDesc}>Escolha uma imagem da galeria para identificar</Text>
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => router.push("/(tabs)/collection")}
+      >
         <Text style={styles.cardTitle}>Minha coleção</Text>
         <Text style={styles.cardDesc}>Veja e gerencie suas cartas</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.card} onPress={() => router.push("/(tabs)/portfolio")}>
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => router.push("/(tabs)/portfolio")}
+      >
         <Text style={styles.cardTitle}>Portfólio</Text>
         <Text style={styles.cardDesc}>Valor total e tendências</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.logout} onPress={handleLogout}>
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => router.push("/(tabs)/alerts")}
+      >
+        <Text style={styles.cardTitle}>Alertas</Text>
+        <Text style={styles.cardDesc}>Avisos de variação de preço</Text>
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [styles.logout, pressed && styles.logoutPressed]}
+        onPress={handleLogout}
+      >
         <Text style={styles.logoutText}>Sair</Text>
-      </TouchableOpacity>
-    </View>
+      </Pressable>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
-    backgroundColor: "#0f172a",
-    padding: 24,
-    paddingTop: 48,
+    backgroundColor: colors.background,
+  },
+  container: {
+    paddingHorizontal: spacing.xl,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#f8fafc",
-    marginBottom: 4,
+    ...typography["2xl"],
+    ...typography.bold,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#94a3b8",
-    marginBottom: 24,
+    ...typography.base,
+    color: colors.textMuted,
+    marginBottom: spacing.xl,
   },
   card: {
-    backgroundColor: "#1e293b",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#334155",
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  cardPressed: {
+    opacity: 0.8,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#f8fafc",
+    ...typography.lg,
+    ...typography.semibold,
+    color: colors.text,
   },
   cardDesc: {
-    fontSize: 14,
-    color: "#94a3b8",
-    marginTop: 4,
+    ...typography.sm,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
   logout: {
-    marginTop: 32,
+    marginTop: spacing.xxl,
     alignItems: "center",
   },
+  logoutPressed: {
+    opacity: 0.7,
+  },
   logoutText: {
-    color: "#ef4444",
-    fontSize: 14,
+    color: colors.error,
+    ...typography.sm,
   },
 });

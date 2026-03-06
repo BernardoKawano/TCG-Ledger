@@ -1,7 +1,7 @@
 """Exports API routes."""
 import json
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 import io
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/exports", tags=["exports"])
 
 @router.post("")
 def request_export(
-    format: str = "json",
+    format: str = Query("json"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

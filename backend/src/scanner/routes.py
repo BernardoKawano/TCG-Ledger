@@ -1,10 +1,14 @@
 """Scanner API routes."""
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.core.config import settings
+from src.core.limiter import limiter
+from src.auth.dependencies import get_current_user
+from src.models.user import User
 from src.scanner.vision import get_vision_client
 from src.scanner.matcher import match_ocr_to_catalog
 from src.scanner.storage import upload_scan
@@ -14,11 +18,14 @@ router = APIRouter(prefix="/scan", tags=["scan"])
 
 
 @router.post("", response_model=ScanResponse)
+@limiter.limit("20/minute")
 async def scan_card(
+    request: Request,
     image: UploadFile = File(...),
     tcg_id: UUID | None = Form(None),
     session_id: str | None = Form(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Upload card image, run OCR, match against catalog.
@@ -28,7 +35,7 @@ async def scan_card(
         raise HTTPException(status_code=400, detail="Expected image file")
 
     contents = await image.read()
-    if len(contents) > 10 * 1024 * 1024:  # 10MB
+    if len(contents) > settings.max_upload_bytes:
         raise HTTPException(status_code=400, detail="Image too large")
 
     try:

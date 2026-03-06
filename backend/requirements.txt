@@ -32,6 +32,9 @@ python-dotenv==1.0.1
 # Fuzzy matching
 rapidfuzz==3.6.1
 
+# Security
+slowapi==0.1.9
+
 # Testing
 pytest==8.0.0
 pytest-cov==4.1.0
